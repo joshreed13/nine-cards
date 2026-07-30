@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Nine Cards Game</title>
+    <script defer src="https://unpkg.com/@alpinejs/persist@3.14.8/dist/cdn.min.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+</head>
+
+<body data-bs-theme="dark" x-data="gameState()" x-init="checkWin()">
+    <div class="container my-3">
+        <div class="text-center fw-bold" x-text="`Guesses: ${guesses}`"></div>
+        <div class="text-center h1" x-text="message"></div>
+    </div>
+
+    <div class="container my-3">
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <button class="btn btn-success" @click="submitGuess()" :disabled="!isSelectionValid()"
+                x-show="!gameWon">Submit</button>
+            <button class="btn btn-primary" @click="swapCards()" :disabled="!isSelectionValid()"
+                x-show="!gameWon">Swap</button>
+            <button class="btn btn-success" @click="newGame()">New Game</button>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row g-2">
+            <template x-for="i in 9" :key="i">
+                <div class="col">
+                    <div class="w-100 text-center" x-text="i"></div>
+                </div>
+            </template>
+        </div>
+        <div class="row g-2">
+            <template x-for="(card, idx) in cards" :key="idx">
+                <div class="col">
+                    <button class="btn w-100" :class="{
+                        'btn-primary': primaryIdx === idx,
+                        'btn-secondary': secondaryIdx === idx,
+                        'btn-outline-secondary': primaryIdx !== idx && secondaryIdx !== idx
+                    }" @click="selectCard(idx)" x-text="alphabet[card.code]"></button>
+                    <div x-show="card.isRevealed" class="w-100 text-center" x-text="card.value"></div>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <div class="container my-3">
+        <div class="card" x-show="primaryIdx !== null">
+            <div class="d-flex flex-wrap gap-2 p-2 w-100 h-100">
+                <template x-for="fact in primaryIdx !== null ? cards[primaryIdx].facts.sort() : []" :key="fact">
+                    <div class="card p-1 d-flex align-items-center justify-content-center" style="width: 80px;"
+                        x-text="fact"></div>
+                </template>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <script>
+        function initGame() {
+            let values = Array.from({ length: 9 }, (_, i) => i + 1);
+            let codes = Array.from({ length: 9 }, (_, i) => i);
+
+            values = shuffle(values);
+            codes = shuffle(codes);
+
+            return values.map((value, idx) => ({
+                value,
+                code: codes[idx],
+                isRevealed: false,
+                facts: []
+            }));
+        }
+
+        function shuffle(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function gameState() {
+            return {
+                alphabet: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'],
+                cards: Alpine.$persist(initGame()),
+                guesses: Alpine.$persist(0),
+                primaryIdx: null,
+                secondaryIdx: null,
+                message: 'Welcome!',
+                gameWon: false,
+
+                newGame() {
+                    this.cards = initGame();
+                    this.guesses = 0;
+                    this.primaryIdx = null;
+                    this.secondaryIdx = null;
+                    this.message = 'Welcome!';
+                    this.gameWon = false;
+                },
+
+                selectCard(idx) {
+                    if (this.primaryIdx === idx) {
+                        this.primaryIdx = this.secondaryIdx;
+                        this.secondaryIdx = null;
+                    } else {
+                        this.secondaryIdx = this.primaryIdx;
+                        this.primaryIdx = idx;
+                    }
+                },
+
+                isSelectionValid() {
+                    return this.primaryIdx !== null &&
+                        this.secondaryIdx !== null &&
+                        !this.cards[this.primaryIdx].isRevealed &&
+                        !this.cards[this.secondaryIdx].isRevealed;
+                },
+
+                swapCards() {
+                    if (!this.isSelectionValid()) return;
+                    const temp = this.cards[this.primaryIdx];
+                    this.cards[this.primaryIdx] = this.cards[this.secondaryIdx];
+                    this.cards[this.secondaryIdx] = temp;
+                },
+
+                submitGuess() {
+                    if (!this.isSelectionValid()) return;
+                    this.checkCards();
+                    this.guesses++;
+                    this.checkWin();
+                },
+
+                checkCards() {
+                    const primary = this.cards[this.primaryIdx];
+                    const secondary = this.cards[this.secondaryIdx];
+
+                    primary.isRevealed = primary.value === this.primaryIdx + 1;
+                    secondary.isRevealed = secondary.value === this.secondaryIdx + 1;
+
+                    const primaryRevealedFact = this.addFact('equality', primary, null, primary.isRevealed, this.primaryIdx + 1);
+                    const secondaryRevealedFact = this.addFact('equality', secondary, null, secondary.isRevealed, this.secondaryIdx + 1);
+
+                    const card1 = primary.code < secondary.code ? primary : secondary;
+                    const card2 = primary.code < secondary.code ? secondary : primary;
+
+                    if (primaryRevealedFact && secondaryRevealedFact) {
+                        this.message = `${primaryRevealedFact} and ${secondaryRevealedFact}`;
+                    } else if (primaryRevealedFact || secondaryRevealedFact) {
+                        return;
+                    } else if (this.addFact('adjacent', card1, card2, Math.abs(card1.value - card2.value) === 1)) {
+                        return;
+                    } else if (this.addFact('mirrored', card1, card2, card1.value + card2.value === 10)) {
+                        return;
+                    } else if (this.addFact('greater', card1, card2, card1.value > card2.value)) {
+                        return;
+                    } else {
+                        this.guesses--;
+                        this.message = 'Already guessed';
+                    }
+                },
+
+                addFact(type, card1, card2, isHit, location = null) {
+                    const fact = this.getFact(type, isHit, card1, card2, location);
+                    const card1NewFact = !card1.facts.includes(fact);
+                    const card2NewFact = card2 && !card2.facts.includes(fact);
+
+                    if (card1NewFact) {
+                        card1.facts.push(fact);
+                    }
+                    if (card2NewFact) {
+                        card2.facts.push(fact);
+                    }
+
+                    if ((isHit || type === 'greater') && (card1NewFact || card2NewFact)) {
+                        this.message = fact;
+                        return fact;
+                    } else {
+                        return null;
+                    }
+                },
+
+                getFact(type, isHit, card1, card2, location = null) {
+                    const code1 = this.alphabet[card1.code];
+                    const code2 = card2 ? this.alphabet[card2.code] : null;
+                    switch (type) {
+                        case 'equality':
+                            return isHit ? `${code1}=${location}` : `${code1}≠${location}`;
+                        case 'adjacent':
+                            return isHit ? `${code1}Δ${code2}=1` : `${code1}Δ${code2}≠1`;
+                        case 'mirrored':
+                            return isHit ? `${code1}+${code2}=10` : `${code1}+${code2}≠10`;
+                        case 'greater':
+                            return isHit ? `${code1}>${code2}` : `${code1}<${code2}`;
+                        default:
+                            return '';
+                    }
+                },
+
+                checkWin() {
+                    if (this.cards.filter(c => c.isRevealed).length >= 8) {
+                        this.cards.forEach(c => c.isRevealed = true);
+                        this.message = 'You Win!';
+                        this.gameWon = true;
+                    }
+                }
+            };
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>
