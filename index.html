@@ -13,17 +13,26 @@
 
 <body data-bs-theme="dark" x-data="gameState()" x-init="checkWin()">
     <div class="container my-3">
-        <div class="text-center fw-bold" x-text="`Guesses: ${guesses}`"></div>
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <button class="btn btn-danger" @click="newGame()">New Game</button>
+        </div>
+    </div>
+
+    <div class="container my-3">
+        <div class="text-center" x-text="`Guesses: ${guesses}`"></div>
+    </div>
+
+    <div class="container my-3">
         <div class="text-center h1" x-text="message"></div>
     </div>
 
     <div class="container my-3">
         <div class="d-flex gap-3 justify-content-center flex-wrap">
-            <button class="btn btn-success" @click="submitGuess()" :disabled="!isSelectionValid()"
-                x-show="!gameWon">Submit</button>
-            <button class="btn btn-primary" @click="swapCards()" :disabled="!isSelectionValid()"
-                x-show="!gameWon">Swap</button>
-            <button class="btn btn-success" @click="newGame()">New Game</button>
+            <button class="btn btn-success" @click="submitGuess()"
+                :disabled="!isSelectionValid() || gameWon">Submit</button>
+            <button class="btn btn-primary" @click="swapCards()"
+                :disabled="!isSelectionValid() || gameWon">Swap</button>
+
         </div>
     </div>
 
@@ -40,7 +49,7 @@
                 <div class="col">
                     <button class="btn w-100" :class="{
                         'btn-primary': primaryIdx === idx,
-                        'btn-secondary': secondaryIdx === idx,
+                        'btn-outline-primary': secondaryIdx === idx,
                         'btn-outline-secondary': primaryIdx !== idx && secondaryIdx !== idx
                     }" @click="selectCard(idx)" x-text="alphabet[card.code]"></button>
                     <div x-show="card.isRevealed" class="w-100 text-center" x-text="card.value"></div>
@@ -97,12 +106,14 @@
                 gameWon: false,
 
                 newGame() {
-                    this.cards = initGame();
-                    this.guesses = 0;
-                    this.primaryIdx = null;
-                    this.secondaryIdx = null;
-                    this.message = 'Welcome!';
-                    this.gameWon = false;
+                    if (this.gameWon || confirm('Are you sure you want to start a new game?')) {
+                        this.cards = initGame();
+                        this.guesses = 0;
+                        this.primaryIdx = null;
+                        this.secondaryIdx = null;
+                        this.message = 'Welcome!';
+                        this.gameWon = false;
+                    }
                 },
 
                 selectCard(idx) {
