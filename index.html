@@ -217,8 +217,8 @@
                 checkPlacement(card1, card2, card1Idx, card2Idx) {
                     card1.isRevealed = card1.value === card1Idx + 1;
                     card2.isRevealed = card2.value === card2Idx + 1;
-                    const card1NewFact = card1.facts.placement[card1Idx] === null;
-                    const card2NewFact = card2.facts.placement[card2Idx] === null;
+                    const card1NewFact = card1.isRevealed && card1.facts.placement[card1Idx] === null;
+                    const card2NewFact = card2.isRevealed && card2.facts.placement[card2Idx] === null;
 
                     card1.facts.placement[card1Idx] = card1.isRevealed;
                     card2.facts.placement[card2Idx] = card2.isRevealed;
