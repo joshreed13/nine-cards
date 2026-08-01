@@ -64,65 +64,57 @@
                 <div class="col">Placement</div>
             </div>
             <div class="row g-2">
-                <template x-if="primaryIdx !== null">
-                    <template x-for="(value, idx) in cards[primaryIdx].facts.placement" :key="idx">
-                        <div class="col">
-                            <button class="btn w-100" disabled :class="{
+                <template x-for="(value, idx) in cards[primaryIdx].facts.placement" :key="idx">
+                    <div class="col">
+                        <button class="btn w-100" disabled :class="{
                         'btn-success': value === true,
                         'btn-danger': value === false,
                         'btn-outline-secondary': value === null
                     }" x-text="idx + 1"></button>
-                        </div>
-                    </template>
+                    </div>
                 </template>
             </div>
             <div class="row">
                 <div class="col">Adjacent</div>
             </div>
             <div class="row g-2">
-                <template x-if="primaryIdx !== null">
-                    <template x-for="(value, idx) in cards[primaryIdx].facts.adjacent" :key="idx">
-                        <div class="col">
-                            <button class="btn w-100" disabled :class="{
+                <template x-for="(value, idx) in cards[primaryIdx].facts.adjacent" :key="idx">
+                    <div class="col">
+                        <button class="btn w-100" disabled :class="{
                         'btn-success': value === true,
                         'btn-danger': value === false,
                         'btn-outline-secondary': value === null
                     }" x-text="alphabet[idx]"></button>
-                        </div>
-                    </template>
+                    </div>
                 </template>
             </div>
             <div class="row">
                 <div class="col">Mirroring</div>
             </div>
             <div class="row g-2">
-                <template x-if="primaryIdx !== null">
-                    <template x-for="(value, idx) in cards[primaryIdx].facts.mirrored" :key="idx">
-                        <div class="col">
-                            <button class="btn w-100" disabled :class="{
+                <template x-for="(value, idx) in cards[primaryIdx].facts.mirrored" :key="idx">
+                    <div class="col">
+                        <button class="btn w-100" disabled :class="{
                         'btn-success': value === true,
                         'btn-danger': value === false,
                         'btn-outline-secondary': value === null
                     }" x-text="alphabet[idx]"></button>
-                        </div>
-                    </template>
+                    </div>
                 </template>
             </div>
             <div class="row">
                 <div class="col">Comparison</div>
             </div>
             <div class="row">
-                <template x-if="primaryIdx !== null">
-                    <div class="d-flex gap-3 justify-content-center flex-wrap">
-                        <span
-                            x-text="cards[primaryIdx].facts.greaterThan.map((value, idx) => value === true ? alphabet[idx]: '').join(' ')"></span>
-                        <span>&lt;</span>
-                        <span x-text="alphabet[cards[primaryIdx].code]"></span>
-                        <span>&lt;</span>
-                        <span
-                            x-text="cards[primaryIdx].facts.greaterThan.map((value, idx) => value === false ? alphabet[idx]: '').join(' ')"></span>
-                    </div>
-                </template>
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <span
+                        x-text="cards[primaryIdx].facts.greaterThan.map((value, idx) => value === true ? alphabet[idx]: '').join(' ')"></span>
+                    <span>&lt;</span>
+                    <span x-text="alphabet[cards[primaryIdx].code]"></span>
+                    <span>&lt;</span>
+                    <span
+                        x-text="cards[primaryIdx].facts.greaterThan.map((value, idx) => value === false ? alphabet[idx]: '').join(' ')"></span>
+                </div>
             </div>
         </div>
     </template>
