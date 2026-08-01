@@ -27,17 +27,17 @@
     </div>
 
     <div class="container my-3">
-        <div class="d-flex gap-3 justify-content-center flex-wrap">
-            <button class="btn btn-success" @click="submitGuess()"
+        <div class="d-flex gap-3 justify-content-center">
+            <button class="btn btn-success flex-grow-1" @click="submitGuess()"
                 :disabled="!isSelectionValid() || gameWon">Submit</button>
-            <button class="btn btn-primary" @click="swapCards()"
+            <button class="btn btn-primary flex-grow-1" @click="swapCards()"
                 :disabled="!isSelectionValid() || gameWon">Swap</button>
 
         </div>
     </div>
 
     <div class="container-fluid">
-        <div class="row g-2">
+        <div class="row mb-1 g-2">
             <template x-for="i in 9" :key="i">
                 <div class="col">
                     <div class="w-100 text-center" x-text="i"></div>
@@ -52,9 +52,9 @@
                         'btn-outline-primary': secondaryIdx === idx,
                         'btn-outline-secondary': primaryIdx !== idx && secondaryIdx !== idx
                     }" @click="selectCard(idx)" x-text="alphabet[card.code]"></button>
-                    <div x-show="card.isRevealed" class="py-1 w-100 text-center" x-text="card.value"></div>
+                    <div x-show="card.isRevealed" class="my-1 w-100 text-center" x-text="card.value"></div>
                     <template x-if="!card.isRevealed">
-                        <div class="py-3 w-100 position-relative">
+                        <div class="my-3 w-100 position-relative">
                             <span class="position-absolute top-50 start-50 translate-middle p-2 rounded-circle" :class="{
                                     'bg-info': card.facts.mirrored.includes(true),
                                     'bg-secondary': card.facts.greaterThan.some(i => i !== null),
@@ -65,6 +65,10 @@
                 </div>
             </template>
         </div>
+    </div>
+
+    <div class="container my-3">
+        <hr />
     </div>
 
     <template x-if="primaryIdx !== null">
