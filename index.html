@@ -69,10 +69,12 @@
 
     <template x-if="primaryIdx !== null">
         <div class="container my-3">
-            <div class="row">
-                <div class="col">Placement</div>
+            <div class="row mb-1">
+                <div class="col text-center">
+                    Placement
+                </div>
             </div>
-            <div class="row g-2">
+            <div class="row mb-2 g-2">
                 <template x-for="(value, idx) in cards[primaryIdx].facts.placement" :key="idx">
                     <div class="col">
                         <button class="btn w-100" disabled :class="{
@@ -83,10 +85,13 @@
                     </div>
                 </template>
             </div>
-            <div class="row">
-                <div class="col">Adjacent</div>
+            <div class="row mb-1">
+                <div class="col text-center">
+                    <span class="d-inline-block p-2 bg-warning rounded-circle"></span>
+                    Adjacent
+                </div>
             </div>
-            <div class="row g-2">
+            <div class="row mb-2 g-2">
                 <template x-for="(value, idx) in cards[primaryIdx].facts.adjacent" :key="idx">
                     <div class="col">
                         <button class="btn w-100" disabled :class="{
@@ -97,10 +102,13 @@
                     </div>
                 </template>
             </div>
-            <div class="row">
-                <div class="col">Mirroring</div>
+            <div class="row mb-1">
+                <div class="col text-center">
+                    <span class="d-inline-block p-2 bg-info rounded-circle"></span>
+                    Mirroring
+                </div>
             </div>
-            <div class="row g-2">
+            <div class="row mb-2 g-2">
                 <template x-for="(value, idx) in cards[primaryIdx].facts.mirrored" :key="idx">
                     <div class="col">
                         <button class="btn w-100" disabled :class="{
@@ -111,10 +119,13 @@
                     </div>
                 </template>
             </div>
-            <div class="row">
-                <div class="col">Comparison</div>
+            <div class="row mb-1">
+                <div class="col text-center">
+                    <span class="d-inline-block p-2 bg-secondary rounded-circle"></span>
+                    Comparison
+                </div>
             </div>
-            <div class="row">
+            <div class="row mb-2">
                 <div class="d-flex gap-3 justify-content-center flex-wrap">
                     <span
                         x-text="cards[primaryIdx].facts.greaterThan.map((value, idx) => value === true ? alphabet[idx]: '').join(' ')"></span>
