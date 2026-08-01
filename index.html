@@ -52,7 +52,16 @@
                         'btn-outline-primary': secondaryIdx === idx,
                         'btn-outline-secondary': primaryIdx !== idx && secondaryIdx !== idx
                     }" @click="selectCard(idx)" x-text="alphabet[card.code]"></button>
-                    <div x-show="card.isRevealed" class="w-100 text-center" x-text="card.value"></div>
+                    <div x-show="card.isRevealed" class="py-1 w-100 text-center" x-text="card.value"></div>
+                    <template x-if="!card.isRevealed">
+                        <div class="py-3 w-100 position-relative">
+                            <span class="position-absolute top-50 start-50 translate-middle p-2 rounded-circle" :class="{
+                                    'bg-info': card.facts.mirrored.includes(true),
+                                    'bg-secondary': card.facts.greaterThan.some(i => i !== null),
+                                    'bg-warning': card.facts.adjacent.includes(true),
+                                }"></span>
+                        </div>
+                    </template>
                 </div>
             </template>
         </div>
