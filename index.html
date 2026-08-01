@@ -58,17 +58,74 @@
         </div>
     </div>
 
-    <div class="container my-3">
-        <div class="card" x-show="primaryIdx !== null">
-            <div class="d-flex flex-wrap gap-2 p-2 w-100 h-100">
-                <template x-for="fact in primaryIdx !== null ? cards[primaryIdx].facts.sort() : []" :key="fact">
-                    <div class="card p-1 d-flex align-items-center justify-content-center" style="width: 80px;"
-                        x-text="fact"></div>
+    <template x-if="primaryIdx !== null">
+        <div class="container my-3">
+            <div class="row">
+                <div class="col">Placement</div>
+            </div>
+            <div class="row g-2">
+                <template x-if="primaryIdx !== null">
+                    <template x-for="(value, idx) in cards[primaryIdx].facts.placement" :key="idx">
+                        <div class="col">
+                            <button class="btn w-100" disabled :class="{
+                        'btn-success': value === true,
+                        'btn-danger': value === false,
+                        'btn-outline-secondary': value === null
+                    }" x-text="idx + 1"></button>
+                        </div>
+                    </template>
+                </template>
+            </div>
+            <div class="row">
+                <div class="col">Adjacent</div>
+            </div>
+            <div class="row g-2">
+                <template x-if="primaryIdx !== null">
+                    <template x-for="(value, idx) in cards[primaryIdx].facts.adjacent" :key="idx">
+                        <div class="col">
+                            <button class="btn w-100" disabled :class="{
+                        'btn-success': value === true,
+                        'btn-danger': value === false,
+                        'btn-outline-secondary': value === null
+                    }" x-text="alphabet[idx]"></button>
+                        </div>
+                    </template>
+                </template>
+            </div>
+            <div class="row">
+                <div class="col">Mirroring</div>
+            </div>
+            <div class="row g-2">
+                <template x-if="primaryIdx !== null">
+                    <template x-for="(value, idx) in cards[primaryIdx].facts.mirrored" :key="idx">
+                        <div class="col">
+                            <button class="btn w-100" disabled :class="{
+                        'btn-success': value === true,
+                        'btn-danger': value === false,
+                        'btn-outline-secondary': value === null
+                    }" x-text="alphabet[idx]"></button>
+                        </div>
+                    </template>
+                </template>
+            </div>
+            <div class="row">
+                <div class="col">Comparison</div>
+            </div>
+            <div class="row">
+                <template x-if="primaryIdx !== null">
+                    <div class="d-flex gap-3 justify-content-center flex-wrap">
+                        <span
+                            x-text="cards[primaryIdx].facts.greaterThan.map((value, idx) => value === true ? alphabet[idx]: '').join(' ')"></span>
+                        <span>&lt;</span>
+                        <span x-text="alphabet[cards[primaryIdx].code]"></span>
+                        <span>&lt;</span>
+                        <span
+                            x-text="cards[primaryIdx].facts.greaterThan.map((value, idx) => value === false ? alphabet[idx]: '').join(' ')"></span>
+                    </div>
                 </template>
             </div>
         </div>
-    </div>
-    </div>
+    </template>
 
     <script>
         function initGame() {
@@ -82,7 +139,12 @@
                 value,
                 code: codes[idx],
                 isRevealed: false,
-                facts: []
+                facts: {
+                    placement: new Array(9).fill(null),
+                    adjacent: new Array(9).fill(null),
+                    mirrored: new Array(9).fill(null),
+                    greaterThan: new Array(9).fill(null),
+                }
             }));
         }
 
@@ -107,12 +169,12 @@
 
                 newGame() {
                     if (this.gameWon || confirm('Are you sure you want to start a new game?')) {
-                        this.cards = initGame();
-                        this.guesses = 0;
-                        this.primaryIdx = null;
-                        this.secondaryIdx = null;
-                        this.message = 'Welcome!';
                         this.gameWon = false;
+                        this.message = 'Welcome!';
+                        this.secondaryIdx = null;
+                        this.primaryIdx = null;
+                        this.guesses = 0;
+                        this.cards = initGame();
                     }
                 },
 
@@ -154,21 +216,26 @@
                     primary.isRevealed = primary.value === this.primaryIdx + 1;
                     secondary.isRevealed = secondary.value === this.secondaryIdx + 1;
 
-                    const primaryRevealedFact = this.addFact('equality', primary, null, primary.isRevealed, this.primaryIdx + 1);
-                    const secondaryRevealedFact = this.addFact('equality', secondary, null, secondary.isRevealed, this.secondaryIdx + 1);
+                    const primaryNewFact = primary.isRevealed && primary.facts.placement[this.primaryIdx] === null;
+                    const secondaryNewFact = secondary.isRevealed && secondary.facts.placement[this.secondaryIdx] === null;
+
+                    primary.facts.placement[this.primaryIdx] = primary.isRevealed;
+                    secondary.facts.placement[this.secondaryIdx] = secondary.isRevealed;
 
                     const card1 = primary.code < secondary.code ? primary : secondary;
                     const card2 = primary.code < secondary.code ? secondary : primary;
 
-                    if (primaryRevealedFact && secondaryRevealedFact) {
-                        this.message = `${primaryRevealedFact} and ${secondaryRevealedFact}`;
-                    } else if (primaryRevealedFact || secondaryRevealedFact) {
+                    if (primaryNewFact && secondaryNewFact) {
+                        this.message = `${this.alphabet[primary.code]} = ${this.primaryIdx + 1} and ${this.alphabet[secondary.code]} = ${this.secondaryIdx + 1}`;
+                    } else if (primaryNewFact) {
+                        this.message = `${this.alphabet[primary.code]} = ${this.primaryIdx + 1}`;
+                    } else if (secondaryNewFact) {
+                        this.message = `${this.alphabet[secondary.code]} = ${this.secondaryIdx + 1}`;
+                    } else if (this.checkAdjacent(card1, card2)) {
                         return;
-                    } else if (this.addFact('adjacent', card1, card2, Math.abs(card1.value - card2.value) === 1)) {
+                    } else if (this.checkMirrored(card1, card2)) {
                         return;
-                    } else if (this.addFact('mirrored', card1, card2, card1.value + card2.value === 10)) {
-                        return;
-                    } else if (this.addFact('greater', card1, card2, card1.value > card2.value)) {
+                    } else if (this.checkGreater(card1, card2)) {
                         return;
                     } else {
                         this.guesses--;
@@ -176,41 +243,46 @@
                     }
                 },
 
-                addFact(type, card1, card2, isHit, location = null) {
-                    const fact = this.getFact(type, isHit, card1, card2, location);
-                    const card1NewFact = !card1.facts.includes(fact);
-                    const card2NewFact = card2 && !card2.facts.includes(fact);
+                checkAdjacent(card1, card2) {
+                    const isHit = Math.abs(card1.value - card2.value) === 1;
+                    const card1NewFact = card1.facts.adjacent[card2.code] === null;
+                    const card2NewFact = card2.facts.adjacent[card1.code] === null;
 
-                    if (card1NewFact) {
-                        card1.facts.push(fact);
+                    card1.facts.adjacent[card2.code] = isHit;
+                    card2.facts.adjacent[card1.code] = isHit;
+                    if (isHit && (card1NewFact || card2NewFact)) {
+                        this.message = `${this.alphabet[card1.code]} is adjacent to ${this.alphabet[card2.code]}`;
+                        return true;
                     }
-                    if (card2NewFact) {
-                        card2.facts.push(fact);
-                    }
-
-                    if ((isHit || type === 'greater') && (card1NewFact || card2NewFact)) {
-                        this.message = fact;
-                        return fact;
-                    } else {
-                        return null;
-                    }
+                    return false;
                 },
 
-                getFact(type, isHit, card1, card2, location = null) {
-                    const code1 = this.alphabet[card1.code];
-                    const code2 = card2 ? this.alphabet[card2.code] : null;
-                    switch (type) {
-                        case 'equality':
-                            return isHit ? `${code1}=${location}` : `${code1}≠${location}`;
-                        case 'adjacent':
-                            return isHit ? `${code1}Δ${code2}=1` : `${code1}Δ${code2}≠1`;
-                        case 'mirrored':
-                            return isHit ? `${code1}+${code2}=10` : `${code1}+${code2}≠10`;
-                        case 'greater':
-                            return isHit ? `${code1}>${code2}` : `${code1}<${code2}`;
-                        default:
-                            return '';
+                checkMirrored(card1, card2) {
+                    const isHit = card1.value + card2.value === 10;
+                    const card1NewFact = card1.facts.mirrored[card2.code] === null;
+                    const card2NewFact = card2.facts.mirrored[card1.code] === null;
+
+                    card1.facts.mirrored[card2.code] = isHit;
+                    card2.facts.mirrored[card1.code] = isHit;
+                    if (isHit && (card1NewFact || card2NewFact)) {
+                        this.message = `${this.alphabet[card1.code]} + ${this.alphabet[card2.code]} = 10`;
+                        return true;
                     }
+                    return false;
+                },
+
+                checkGreater(card1, card2) {
+                    const isHit = card1.value > card2.value;
+                    const card1NewFact = card1.facts.greaterThan[card2.code] === null;
+                    const card2NewFact = card2.facts.greaterThan[card1.code] === null;
+
+                    card1.facts.greaterThan[card2.code] = isHit;
+                    card2.facts.greaterThan[card1.code] = !isHit;
+                    if (card1NewFact || card2NewFact) {
+                        this.message = `${this.alphabet[isHit ? card2.code : card1.code]} < ${this.alphabet[isHit ? card1.code : card2.code]}`;
+                        return true;
+                    }
+                    return false;
                 },
 
                 checkWin() {
