@@ -213,34 +213,34 @@
                     const primary = this.cards[this.primaryIdx];
                     const secondary = this.cards[this.secondaryIdx];
 
-                    primary.isRevealed = primary.value === this.primaryIdx + 1;
-                    secondary.isRevealed = secondary.value === this.secondaryIdx + 1;
-
-                    const primaryNewFact = primary.isRevealed && primary.facts.placement[this.primaryIdx] === null;
-                    const secondaryNewFact = secondary.isRevealed && secondary.facts.placement[this.secondaryIdx] === null;
-
-                    primary.facts.placement[this.primaryIdx] = primary.isRevealed;
-                    secondary.facts.placement[this.secondaryIdx] = secondary.isRevealed;
-
-                    const card1 = primary.code < secondary.code ? primary : secondary;
-                    const card2 = primary.code < secondary.code ? secondary : primary;
-
-                    if (primaryNewFact && secondaryNewFact) {
-                        this.message = `${this.alphabet[primary.code]} = ${this.primaryIdx + 1} and ${this.alphabet[secondary.code]} = ${this.secondaryIdx + 1}`;
-                    } else if (primaryNewFact) {
-                        this.message = `${this.alphabet[primary.code]} = ${this.primaryIdx + 1}`;
-                    } else if (secondaryNewFact) {
-                        this.message = `${this.alphabet[secondary.code]} = ${this.secondaryIdx + 1}`;
-                    } else if (this.checkAdjacent(card1, card2)) {
-                        return;
-                    } else if (this.checkMirrored(card1, card2)) {
-                        return;
-                    } else if (this.checkGreater(card1, card2)) {
-                        return;
-                    } else {
+                    if (!this.checkPlacement(primary, secondary, this.primaryIdx, this.secondaryIdx)
+                        && !this.checkAdjacent(primary, secondary)
+                        && !this.checkMirrored(primary, secondary)
+                        && !this.checkGreater(primary, secondary)) {
                         this.guesses--;
                         this.message = 'Already guessed';
                     }
+                },
+
+                checkPlacement(card1, card2, card1Idx, card2Idx) {
+                    card1.isRevealed = card1.value === card1Idx + 1;
+                    card2.isRevealed = card2.value === card2Idx + 1;
+                    const card1NewFact = card1.facts.placement[card1Idx] === null;
+                    const card2NewFact = card2.facts.placement[card2Idx] === null;
+
+                    card1.facts.placement[card1Idx] = card1.isRevealed;
+                    card2.facts.placement[card2Idx] = card2.isRevealed;
+                    if (card1NewFact && card2NewFact) {
+                        this.message = `${this.alphabet[card1.code]} = ${card1Idx + 1} and ${this.alphabet[card2.code]} = ${card2Idx + 1}`;
+                        return true;
+                    } else if (card1NewFact) {
+                        this.message = `${this.alphabet[card1.code]} = ${card1Idx + 1}`;
+                        return true;
+                    } else if (card2NewFact) {
+                        this.message = `${this.alphabet[card2.code]} = ${card2Idx + 1}`;
+                        return true;
+                    }
+                    return false;
                 },
 
                 checkAdjacent(card1, card2) {
