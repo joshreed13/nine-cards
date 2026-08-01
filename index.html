@@ -245,12 +245,11 @@
 
                 checkAdjacent(card1, card2) {
                     const isHit = Math.abs(card1.value - card2.value) === 1;
-                    const card1NewFact = card1.facts.adjacent[card2.code] === null;
-                    const card2NewFact = card2.facts.adjacent[card1.code] === null;
+                    const newFact = card1.facts.adjacent[card2.code] === null || card2.facts.adjacent[card1.code] === null;
 
                     card1.facts.adjacent[card2.code] = isHit;
                     card2.facts.adjacent[card1.code] = isHit;
-                    if (isHit && (card1NewFact || card2NewFact)) {
+                    if (isHit && newFact) {
                         this.message = `${this.alphabet[card1.code]} is adjacent to ${this.alphabet[card2.code]}`;
                         return true;
                     }
@@ -259,12 +258,11 @@
 
                 checkMirrored(card1, card2) {
                     const isHit = card1.value + card2.value === 10;
-                    const card1NewFact = card1.facts.mirrored[card2.code] === null;
-                    const card2NewFact = card2.facts.mirrored[card1.code] === null;
+                    const newFact = card1.facts.mirrored[card2.code] === null || card2.facts.mirrored[card1.code] === null;
 
                     card1.facts.mirrored[card2.code] = isHit;
                     card2.facts.mirrored[card1.code] = isHit;
-                    if (isHit && (card1NewFact || card2NewFact)) {
+                    if (isHit && newFact) {
                         this.message = `${this.alphabet[card1.code]} + ${this.alphabet[card2.code]} = 10`;
                         return true;
                     }
@@ -273,12 +271,11 @@
 
                 checkGreater(card1, card2) {
                     const isHit = card1.value > card2.value;
-                    const card1NewFact = card1.facts.greaterThan[card2.code] === null;
-                    const card2NewFact = card2.facts.greaterThan[card1.code] === null;
+                    const newFact = card1.facts.greaterThan[card2.code] === null || card2.facts.greaterThan[card1.code] === null;
 
                     card1.facts.greaterThan[card2.code] = isHit;
                     card2.facts.greaterThan[card1.code] = !isHit;
-                    if (card1NewFact || card2NewFact) {
+                    if (newFact) {
                         this.message = `${this.alphabet[isHit ? card2.code : card1.code]} < ${this.alphabet[isHit ? card1.code : card2.code]}`;
                         return true;
                     }
