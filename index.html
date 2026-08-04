@@ -229,73 +229,67 @@
                     const primary = this.cards[this.primaryIdx];
                     const secondary = this.cards[this.secondaryIdx];
 
-                    if (!this.checkPlacement(primary, secondary, this.primaryIdx, this.secondaryIdx)
-                        && !this.checkAdjacent(primary, secondary)
-                        && !this.checkMirrored(primary, secondary)
-                        && !this.checkGreater(primary, secondary)) {
+                    const oldFacts = [
+                        primary.facts.placement[this.primaryIdx],
+                        secondary.facts.placement[this.secondaryIdx],
+                        primary.facts.adjacent[secondary.code],
+                        secondary.facts.adjacent[primary.code],
+                        primary.facts.mirrored[secondary.code],
+                        secondary.facts.mirrored[primary.code],
+                        primary.facts.greaterThan[secondary.code],
+                        secondary.facts.greaterThan[primary.code]
+                    ];
+
+                    if (oldFacts.every((fact, index) => fact !== null)) {
                         this.guesses--;
                         this.message = 'Already guessed';
+                        return;
                     }
-                },
 
-                checkPlacement(card1, card2, card1Idx, card2Idx) {
-                    card1.isRevealed = card1.value === card1Idx + 1;
-                    card2.isRevealed = card2.value === card2Idx + 1;
-                    const card1NewFact = card1.isRevealed && card1.facts.placement[card1Idx] === null;
-                    const card2NewFact = card2.isRevealed && card2.facts.placement[card2Idx] === null;
+                    const newFacts = [
+                        primary.value === this.primaryIdx + 1,
+                        secondary.value === this.secondaryIdx + 1,
+                        Math.abs(primary.value - secondary.value) === 1,
+                        Math.abs(primary.value - secondary.value) === 1,
+                        primary.value + secondary.value === 10,
+                        primary.value + secondary.value === 10,
+                        primary.value > secondary.value,
+                        primary.value < secondary.value
+                    ];
 
-                    card1.facts.placement[card1Idx] = card1.isRevealed;
-                    card2.facts.placement[card2Idx] = card2.isRevealed;
-                    if (card1NewFact && card2NewFact) {
-                        this.message = `${this.alphabet[card1.code]} = ${card1Idx + 1} and ${this.alphabet[card2.code]} = ${card2Idx + 1}`;
-                        return true;
-                    } else if (card1NewFact) {
-                        this.message = `${this.alphabet[card1.code]} = ${card1Idx + 1}`;
-                        return true;
-                    } else if (card2NewFact) {
-                        this.message = `${this.alphabet[card2.code]} = ${card2Idx + 1}`;
-                        return true;
+                    switch (true) {
+                        case oldFacts[0] === null && newFacts[0]:
+                        case oldFacts[1] === null && newFacts[1]:
+                            newFacts[2] = newFacts[3] = null;
+                        case oldFacts[2] === null && newFacts[2]:
+                        case oldFacts[3] === null && newFacts[3]:
+                            newFacts[4] = newFacts[5] = null;
+                        case oldFacts[4] === null && newFacts[4]:
+                        case oldFacts[5] === null && newFacts[5]:
+                            newFacts[6] = newFacts[7] = null;
                     }
-                    return false;
-                },
 
-                checkAdjacent(card1, card2) {
-                    const isHit = Math.abs(card1.value - card2.value) === 1;
-                    const newFact = card1.facts.adjacent[card2.code] === null || card2.facts.adjacent[card1.code] === null;
+                    primary.facts.placement[this.primaryIdx] = oldFacts[0] ?? newFacts[0];
+                    secondary.facts.placement[this.secondaryIdx] = oldFacts[1] ?? newFacts[1];
+                    primary.facts.adjacent[secondary.code] = oldFacts[2] ?? newFacts[2];
+                    secondary.facts.adjacent[primary.code] = oldFacts[3] ?? newFacts[3];
+                    primary.facts.mirrored[secondary.code] = oldFacts[4] ?? newFacts[4];
+                    secondary.facts.mirrored[primary.code] = oldFacts[5] ?? newFacts[5];
+                    primary.facts.greaterThan[secondary.code] = oldFacts[6] ?? newFacts[6];
+                    secondary.facts.greaterThan[primary.code] = oldFacts[7] ?? newFacts[7];
 
-                    card1.facts.adjacent[card2.code] = isHit;
-                    card2.facts.adjacent[card1.code] = isHit;
-                    if (isHit && newFact) {
-                        this.message = `${this.alphabet[card1.code]} is adjacent to ${this.alphabet[card2.code]}`;
-                        return true;
-                    }
-                    return false;
-                },
+                    const messages = [
+                        oldFacts[0] === null && newFacts[0] && `${this.alphabet[primary.code]} = ${this.primaryIdx + 1}`,
+                        oldFacts[1] === null && newFacts[1] && `${this.alphabet[secondary.code]} = ${this.secondaryIdx + 1}`,
+                        oldFacts[2] === null && newFacts[2] && `${this.alphabet[primary.code]} is adjacent to ${this.alphabet[secondary.code]}`,
+                        oldFacts[4] === null && newFacts[4] && `${this.alphabet[primary.code]} + ${this.alphabet[secondary.code]} = 10`,
+                        oldFacts[6] === null && newFacts[6] && `${this.alphabet[secondary.code]} < ${this.alphabet[primary.code]}`,
+                        oldFacts[7] === null && newFacts[7] && `${this.alphabet[primary.code]} < ${this.alphabet[secondary.code]}`
+                    ];
 
-                checkMirrored(card1, card2) {
-                    const isHit = card1.value + card2.value === 10;
-                    const newFact = card1.facts.mirrored[card2.code] === null || card2.facts.mirrored[card1.code] === null;
-
-                    card1.facts.mirrored[card2.code] = isHit;
-                    card2.facts.mirrored[card1.code] = isHit;
-                    if (isHit && newFact) {
-                        this.message = `${this.alphabet[card1.code]} + ${this.alphabet[card2.code]} = 10`;
-                        return true;
-                    }
-                    return false;
-                },
-
-                checkGreater(card1, card2) {
-                    const isHit = card1.value > card2.value;
-                    const newFact = card1.facts.greaterThan[card2.code] === null || card2.facts.greaterThan[card1.code] === null;
-
-                    card1.facts.greaterThan[card2.code] = isHit;
-                    card2.facts.greaterThan[card1.code] = !isHit;
-                    if (newFact) {
-                        this.message = `${this.alphabet[isHit ? card2.code : card1.code]} < ${this.alphabet[isHit ? card1.code : card2.code]}`;
-                        return true;
-                    }
-                    return false;
+                    this.message = messages.filter(Boolean).join(' and ') || 'Nothing new';
+                    primary.isRevealed = primary.facts.placement[this.primaryIdx] === true;
+                    secondary.isRevealed = secondary.facts.placement[this.secondaryIdx] === true;
                 },
 
                 checkWin() {
